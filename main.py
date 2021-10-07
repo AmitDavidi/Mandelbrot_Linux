@@ -17,8 +17,8 @@ c_funcs.map_num.restype = c_double
 
 pygame.init()
 consts = {
-    "WIDTH": 640,
-    'HEIGHT': 640,
+    "WIDTH": 1000,
+    'HEIGHT': 1000,
     'MAX_ITERATIONS': 1000}
 
 """"
