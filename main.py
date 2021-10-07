@@ -1,9 +1,9 @@
-import pygame
-from ctypes import *
-import numpy as np
-import os
 import math
-
+import os
+from ctypes import *
+from time import *
+import numpy as np
+import pygame
 
 cwd = os.getcwd()
 path = os.path.join(cwd + '/myf.so')
@@ -19,7 +19,7 @@ pygame.init()
 consts = {
     "WIDTH": 640,
     'HEIGHT': 640,
-    'MAX_ITERATIONS': 200}
+    'MAX_ITERATIONS': 1000}
 
 """"
 replaced by C- function
@@ -62,6 +62,7 @@ def draw_screen(win, screen_matrix):
 
 
 def main(constants, win, data):
+
     colors = [(0, 0, 0),
               (66, 30, 15),
               (25, 7, 26),
@@ -84,7 +85,8 @@ def main(constants, win, data):
     width = constants['WIDTH']
     height = constants['HEIGHT']
     max_iterations = constants['MAX_ITERATIONS']
-
+    height_range = range(height)
+    width_range = range(width)
     # starting ranges for the Mandelbrot
     x_range = [-2, 2]
     y_range = [-2, 2]
@@ -150,40 +152,39 @@ def main(constants, win, data):
 
         if flag:  # draw the picture
 
-            x = 0
-            while x < width:
+
+            start = time()
+            for x in width_range:
                 mapped_x = c_funcs.map_num(x, width, x_range[0], x_range[1])
-                y = 0
-                while y < height:
+                for y in height_range:
                     mapped_y = c_funcs.map_num(y, height, y_range[0], y_range[1])
 
-                    try:
-                        Smoothed_iters = data[(mapped_x, mapped_y)]
+                    # try:
+                    #     iters_before_bail = data[(mapped_x, mapped_y)]
+                    #
+                    # except KeyError:
 
-                    except KeyError:
-                        Smoothed_iters = c_funcs.does_converge(mapped_x, mapped_y, max_iterations, min_color, max_color)
-                        data[(mapped_x, mapped_y)] = Smoothed_iters
+                    # how many iterations did it take to bail out is Smoothed iters
+                    iters_before_bail = c_funcs.does_converge(mapped_x, mapped_y, max_iterations, min_color, max_color)
+                        # data[(mapped_x, mapped_y)] = iters_before_bail
 
-                    # Color_mod_17 - the index of the color in the color array
-                    Color_mod_17 = Smoothed_iters % 17
+                    # color_index - the index of the color in the color array
+                    color_index = iters_before_bail % 17
+                    next_color_index = (iters_before_bail + 1) % 17
 
                     # how close and how far to the next color - 0 to 1
-                    how_close = Color_mod_17 % 1
+                    how_close = color_index % 1
                     how_far = 1 - how_close
 
-                    # most efficient way to round Smoothed_iters to an integer
-                    Smoothed_iters = math.floor(Color_mod_17)
-                    # most efficient - currently known to me to round Smoothed_iters + 1 to be in range
-                    ColorP1_mod_17 = (Smoothed_iters + 1) % 17
+                    next_color = colors[math.floor(next_color_index)]
+                    this_color = colors[math.floor(color_index)]
 
-                    Color = (how_far * colors[Smoothed_iters][0] + how_close * colors[ColorP1_mod_17][0],
-                             how_far * colors[Smoothed_iters][1] + how_close * colors[ColorP1_mod_17][1],
-                             how_far * colors[Smoothed_iters][2] + how_close * colors[ColorP1_mod_17][2])
+                    Color = (how_far * this_color[0] + how_close * next_color[0],
+                             how_far * this_color[1] + how_close * next_color[1],
+                             how_far * this_color[2] + how_close * next_color[2])
                     screen_matrix[x, y] = Color
 
-                    y += 1
-                x += 1
-
+            print(time() - start)
             flag = 0
     return data
 

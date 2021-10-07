@@ -20,7 +20,7 @@ double does_converge(double x_0, double y_0, int iterations, int min_color, int 
 	double y_2 = 0;
 	double w = 0;
 	
-	while((i < iterations) && ((x_2 + y_2) <= 16)){
+	while((i < iterations) && ((x_2 + y_2) <= 4)){
 		
 
 		x = x_2 - y_2 + x_0;
